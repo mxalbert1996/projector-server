@@ -227,8 +227,6 @@ task downloadDefaultFonts {
 }
 
 task downloadMonoFonts {
-  def monoFontsLink = "https://download.jetbrains.com/fonts/JetBrainsMono-1.0.3.zip"
-
   doLast {
     def requiredFonts = ["Mono-R", "Mono-RI", "Mono-B", "Mono-BI"].stream().map { "$fontsPath/${it}.ttf" }.collect()
 
@@ -244,22 +242,26 @@ task downloadMonoFonts {
 
       project.file(fontsPath).mkdirs()
 
-      def url = new URL(monoFontsLink)
+      def jsonUrl = new URL("https://api.github.com/repos/be5invis/Iosevka/releases/latest")
+      def json = jsonUrl.withInputStream { it.getText("UTF-8") }
+      def matcher = (~"\"browser_download_url\":\\s*\"([^\"]*ttf-iosevka-[\\d.]+.zip)\"").matcher(json)
+      matcher.find()
+      def url = new URL(matcher.group(1))
       def tempFile = File.createTempFile("monoFonts", "zip")
       url.withInputStream { i -> tempFile.withOutputStream { it << i } }
 
       def originalToDest = [
-        "JetBrainsMono-Regular"    : "Mono-R",
-        "JetBrainsMono-Italic"     : "Mono-RI",
-        "JetBrainsMono-Bold"       : "Mono-B",
-        "JetBrainsMono-Bold-Italic": "Mono-BI",
+        "iosevka-regular"   : "Mono-R",
+        "iosevka-italic"    : "Mono-RI",
+        "iosevka-bold"      : "Mono-B",
+        "iosevka-bolditalic": "Mono-BI",
       ]
 
       def zipFile = new ZipFile(tempFile)
 
       originalToDest.forEach { original, dest ->
         def destFile = project.file("$fontsPath/${dest}.ttf")
-        def srcPath = "JetBrainsMono-1.0.3/ttf/${original}.ttf"
+        def srcPath = "${original}.ttf"
 
         destFile.delete()
         destFile.createNewFile()
