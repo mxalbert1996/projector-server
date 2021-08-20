@@ -173,16 +173,16 @@ object ProjectorFontProvider : FontProvider {
   }
 
   private const val DEFAULT_R_NAME = "Default-R"
-  private const val DEFAULT_R_PATH = "/fonts/Default-R.ttf"
+  private const val DEFAULT_R_PATH = "/fonts/Default-R.otf"
 
   private const val DEFAULT_RI_NAME = "Default-RI"
-  private const val DEFAULT_RI_PATH = "/fonts/Default-RI.ttf"
+  private const val DEFAULT_RI_PATH = "/fonts/Default-RI.otf"
 
   private const val DEFAULT_B_NAME = "Default-B"
-  private const val DEFAULT_B_PATH = "/fonts/Default-B.ttf"
+  private const val DEFAULT_B_PATH = "/fonts/Default-B.otf"
 
   private const val DEFAULT_BI_NAME = "Default-BI"
-  private const val DEFAULT_BI_PATH = "/fonts/Default-BI.ttf"
+  private const val DEFAULT_BI_PATH = "/fonts/Default-BI.otf"
 
 
   private const val MONO_R_NAME = "Mono-R"

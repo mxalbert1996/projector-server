@@ -201,14 +201,20 @@ task downloadCjkFonts {
 
 task downloadDefaultFonts {
   doLast {
+    def jsonUrl = new URL("https://api.github.com/repos/rsms/inter/releases/latest")
+    def json = jsonUrl.withInputStream { it.getText("UTF-8") }
+    def matcher = (~"\"browser_download_url\":\\s*\"([^\"]*Inter-[\\d.]+.zip)\"").matcher(json)
+    matcher.find()
+    def url = matcher.group(1)
+
     downloadFontsInZip(
       "default",
-      "https://noto-website-2.storage.googleapis.com/pkgs/NotoSans-hinted.zip",
+      url,
       [
-        "NotoSans-Regular.ttf" : "Default-R.ttf",
-        "NotoSans-Italic.ttf": "Default-RI.ttf",
-        "NotoSans-Bold.ttf" : "Default-B.ttf",
-        "NotoSans-BoldItalic.ttf": "Default-BI.ttf",
+        "Inter Desktop/Inter-Regular.otf"   : "Default-R.otf",
+        "Inter Desktop/Inter-Italic.otf"    : "Default-RI.otf",
+        "Inter Desktop/Inter-Bold.otf"      : "Default-B.otf",
+        "Inter Desktop/Inter-BoldItalic.otf": "Default-BI.otf",
       ]
     )
   }
