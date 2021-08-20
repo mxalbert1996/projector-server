@@ -27,7 +27,6 @@ package org.jetbrains.projector.server.service
 
 import org.jetbrains.projector.awt.font.PFontManager
 import org.jetbrains.projector.awt.service.FontProvider
-import sun.font.CompositeFont
 import sun.font.Font2D
 import sun.font.PhysicalFont
 import java.awt.Font
@@ -40,46 +39,14 @@ object ProjectorFontProvider : FontProvider {
 
   var isAgent by Delegates.notNull<Boolean>()
 
-  private val cjkRegularFile by lazy { createFontFile(CJK_R_NAME, CJK_R_PATH) }
-  private val cjkRegularFont by lazy { loadPhysicalFont(cjkRegularFile) }
-
-  // for some reason, default font doesn't support arrows (↑↓), so need to fallback to another font:
-  // https://github.com/googlefonts/noto-fonts/issues/837
-  // falling back to Noto Sans Symbols works too but increases font height for some reason
-  private val symbolsRegularFile by lazy { createFontFile(SYMBOLS_R_NAME, MONO_R_PATH) }
-  private val symbolsRegularFont by lazy { loadPhysicalFont(symbolsRegularFile) }
-
-  private val defaultRegularFile by lazy { createFontFile(DEFAULT_R_NAME, DEFAULT_R_PATH) }
-  private val defaultRegularFont by lazy { loadPhysicalFont(defaultRegularFile) }
-  private val defaultRegularComposite by lazy { createCompositeFont(DEFAULT_R_NAME, "plain", defaultRegularFile) }
-
-  private val defaultRegularItalicFile by lazy { createFontFile(DEFAULT_RI_NAME, DEFAULT_RI_PATH) }
-  private val defaultRegularItalicFont by lazy { loadPhysicalFont(defaultRegularItalicFile) }
-  private val defaultRegularItalicComposite by lazy { createCompositeFont(DEFAULT_RI_NAME, "italic", defaultRegularItalicFile) }
-
-  private val defaultBoldFile by lazy { createFontFile(DEFAULT_B_NAME, DEFAULT_B_PATH) }
-  private val defaultBoldFont by lazy { loadPhysicalFont(defaultBoldFile) }
-  private val defaultBoldComposite by lazy { createCompositeFont(DEFAULT_B_NAME, "bold", defaultBoldFile) }
-
-  private val defaultBoldItalicFile by lazy { createFontFile(DEFAULT_BI_NAME, DEFAULT_BI_PATH) }
-  private val defaultBoldItalicFont by lazy { loadPhysicalFont(defaultBoldItalicFile) }
-  private val defaultBoldItalicComposite by lazy { createCompositeFont(DEFAULT_BI_NAME, "bolditalic", defaultBoldItalicFile) }
-
-  private val monoRegularFile by lazy { createFontFile(MONO_R_NAME, MONO_R_PATH) }
-  private val monoRegularFont by lazy { loadPhysicalFont(monoRegularFile) }
-  private val monoRegularComposite by lazy { createCompositeFont(MONO_R_NAME, "plain", monoRegularFile) }
-
-  private val monoRegularItalicFile by lazy { createFontFile(MONO_RI_NAME, MONO_RI_PATH) }
-  private val monoRegularItalicFont by lazy { loadPhysicalFont(monoRegularItalicFile) }
-  private val monoRegularItalicComposite by lazy { createCompositeFont(MONO_RI_NAME, "italic", monoRegularItalicFile) }
-
-  private val monoBoldFile by lazy { createFontFile(MONO_B_NAME, MONO_B_PATH) }
-  private val monoBoldFont by lazy { loadPhysicalFont(monoBoldFile) }
-  private val monoBoldComposite by lazy { createCompositeFont(MONO_B_NAME, "bold", monoBoldFile) }
-
-  private val monoBoldItalicFile by lazy { createFontFile(MONO_BI_NAME, MONO_BI_PATH) }
-  private val monoBoldItalicFont by lazy { loadPhysicalFont(monoBoldItalicFile) }
-  private val monoBoldItalicComposite by lazy { createCompositeFont(MONO_BI_NAME, "bolditalic", monoBoldItalicFile) }
+  private val defaultRegularFont by lazy { loadFont(DEFAULT_R_NAME, DEFAULT_R_PATH) }
+  private val defaultRegularItalicFont by lazy { loadFont(DEFAULT_RI_NAME, DEFAULT_RI_PATH) }
+  private val defaultBoldFont by lazy { loadFont(DEFAULT_B_NAME, DEFAULT_B_PATH) }
+  private val defaultBoldItalicFont by lazy { loadFont(DEFAULT_BI_NAME, DEFAULT_BI_PATH) }
+  private val monoRegularFont by lazy { loadFont(MONO_R_NAME, MONO_R_PATH) }
+  private val monoRegularItalicFont by lazy { loadFont(MONO_RI_NAME, MONO_RI_PATH) }
+  private val monoBoldFont by lazy { loadFont(MONO_B_NAME, MONO_B_PATH) }
+  private val monoBoldItalicFont by lazy { loadFont(MONO_BI_NAME, MONO_BI_PATH) }
 
   private val allInstalledFonts by lazy {
     fun Font2D.toFont() = Font(getFamilyName(null), style, DEFAULT_SIZE)
@@ -104,39 +71,32 @@ object ProjectorFontProvider : FontProvider {
 
   override fun findFont2D(name: String, style: Int, fallback: Int): Font2D {
     when (name) {
-      DEFAULT_R_NAME, DEFAULT_RI_NAME, DEFAULT_B_NAME, DEFAULT_BI_NAME -> return when (style) {
+      DEFAULT_NAME, DEFAULT_R_NAME, DEFAULT_RI_NAME, DEFAULT_B_NAME, DEFAULT_BI_NAME -> return when (style) {
         Font.BOLD or Font.ITALIC -> defaultBoldItalicFont
         Font.BOLD -> defaultBoldFont
         Font.ITALIC -> defaultRegularItalicFont
         else -> defaultRegularFont
       }
-      MONO_R_NAME, MONO_RI_NAME, MONO_B_NAME, MONO_BI_NAME -> return when (style) {
+      MONO_NAME, MONO_R_NAME, MONO_RI_NAME, MONO_B_NAME, MONO_BI_NAME -> return when (style) {
         Font.BOLD or Font.ITALIC -> monoBoldItalicFont
         Font.BOLD -> monoBoldFont
         Font.ITALIC -> monoRegularItalicFont
         else -> monoRegularFont
       }
-      CJK_R_NAME -> return cjkRegularFont
-      SYMBOLS_R_NAME -> return symbolsRegularFont
-    }
-
-    fun headlessOrAgent(headless: Font2D, agent: Font2D): Font2D = when (isAgent) {
-      false -> headless
-      true -> agent
     }
 
     return when (isMonospacedFont(name)) {
       true -> when (style) {
-        Font.BOLD or Font.ITALIC -> headlessOrAgent(monoBoldItalicComposite, monoBoldItalicFont)
-        Font.BOLD -> headlessOrAgent(monoBoldComposite, monoBoldFont)
-        Font.ITALIC -> headlessOrAgent(monoRegularItalicComposite, monoRegularItalicFont)
-        else -> headlessOrAgent(monoRegularComposite, monoRegularFont)
+        Font.BOLD or Font.ITALIC -> monoBoldItalicFont
+        Font.BOLD -> monoBoldFont
+        Font.ITALIC -> monoRegularItalicFont
+        else -> monoRegularFont
       }
       false -> when (style) {
-        Font.BOLD or Font.ITALIC -> headlessOrAgent(defaultBoldItalicComposite, defaultBoldItalicFont)
-        Font.BOLD -> headlessOrAgent(defaultBoldComposite, defaultBoldFont)
-        Font.ITALIC -> headlessOrAgent(defaultRegularItalicComposite, defaultRegularItalicFont)
-        else -> headlessOrAgent(defaultRegularComposite, defaultRegularFont)
+        Font.BOLD or Font.ITALIC -> defaultBoldItalicFont
+        Font.BOLD -> defaultBoldFont
+        Font.ITALIC -> defaultRegularItalicFont
+        else -> defaultRegularFont
       }
     }
   }
@@ -145,32 +105,17 @@ object ProjectorFontProvider : FontProvider {
     return "mono" in name.lowercase() || name.lowercase() == "menlo"
   }
 
-  private fun createFontFile(fontName: String, fontPath: String): File {
+  private fun loadFont(fontName: String, fontPath: String): PhysicalFont {
     val tempFile = File.createTempFile(fontName, ".ttf").apply {
       deleteOnExit()
     }
 
-    val link = PFontManager::class.java.getResourceAsStream(fontPath)
+    val link = PFontManager::class.java.getResourceAsStream(fontPath)!!
     Files.copy(link, tempFile.absoluteFile.toPath(), StandardCopyOption.REPLACE_EXISTING)
-    return tempFile
-  }
-
-  private fun loadPhysicalFont(tempFile: File): PhysicalFont {
     return PFontManager.createFont2D(tempFile, Font.TRUETYPE_FONT, false, false, null).single() as PhysicalFont
   }
 
-  private fun createCompositeFont(fontName: String, style: String, tempFile: File): CompositeFont {
-    return CompositeFont(
-      "$fontName.$style",
-      arrayOf(tempFile.absolutePath, symbolsRegularFile.absolutePath, cjkRegularFile.absolutePath),
-      arrayOf(fontName, SYMBOLS_R_NAME, CJK_R_NAME),
-      2,
-      null,
-      null,
-      false,
-      PFontManager,
-    )
-  }
+  private const val DEFAULT_NAME = "Inter"
 
   private const val DEFAULT_R_NAME = "Default-R"
   private const val DEFAULT_R_PATH = "/fonts/Default-R.otf"
@@ -185,6 +130,8 @@ object ProjectorFontProvider : FontProvider {
   private const val DEFAULT_BI_PATH = "/fonts/Default-BI.otf"
 
 
+  private const val MONO_NAME = "Sarasa Mono J"
+
   private const val MONO_R_NAME = "Mono-R"
   private const val MONO_R_PATH = "/fonts/Mono-R.ttf"
 
@@ -197,13 +144,7 @@ object ProjectorFontProvider : FontProvider {
   private const val MONO_BI_NAME = "Mono-BI"
   private const val MONO_BI_PATH = "/fonts/Mono-BI.ttf"
 
-
-  private const val CJK_R_NAME = "CJK-R"
-  private const val CJK_R_PATH = "/fonts/CJK-R.otf"
-
-  private const val SYMBOLS_R_NAME = "Symbols-R"
-
-  private const val DEFAULT_FONT_NAME = DEFAULT_R_NAME
+  private const val DEFAULT_FONT_NAME = DEFAULT_NAME
   private const val DEFAULT_FONT_PATH = DEFAULT_R_PATH
 
   private const val DEFAULT_SIZE = 12

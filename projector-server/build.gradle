@@ -236,7 +236,7 @@ task downloadMonoFonts {
 }
 
 task downloadFonts {
-  dependsOn(downloadCjkFonts, downloadDefaultFonts, downloadMonoFonts)
+  dependsOn(downloadDefaultFonts, downloadMonoFonts)
 }
 
 // Modify existing task which puts resources to the target dir:
